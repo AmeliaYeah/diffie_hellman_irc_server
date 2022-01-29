@@ -35,6 +35,8 @@ def cipher_message(key, connection, message=None):
     if message:
         connection.send(nonce)
         connection.send(hmac_key)
+        connection.send(f"{len(message):04x}".encode("ascii"))
         connection.send(cryptor.encrypt(message.encode("ascii")))
     else:
-        return cryptor.decrypt(connection.recv(4096)).decode("ascii")
+        msg_size = int(connection.recv(4).decode("ascii"), 16)
+        return cryptor.decrypt(connection.recv(msg_size)).decode("ascii")

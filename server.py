@@ -3,14 +3,24 @@ from Crypto.Util.number import long_to_bytes
 import dh, socket, string
 
 connections = []
-def send_to_all(msg):
+def send_to_all(msg, exclude_user=None):
     for i,connection in enumerate(connections):
-        secret, socket = connection
+        secret, socket, name = connection
+        if name == exclude_user:
+            continue
         try:
             dh.cipher_message(secret, socket, msg)
         except ConnectionError:
             del connections[i]
             pass
+
+def check_name_exists(name):
+    for connection in connections:
+        secret, socket, current_name = connection
+        if current_name == name:
+            return True
+
+    return False
 
 def sanitize(text):
     new_txt = ""
@@ -19,6 +29,7 @@ def sanitize(text):
             if char == good_char:
                 new_txt += char
     return new_txt
+
 
 class Handler(BaseRequestHandler):
     def handle(self):
@@ -33,20 +44,41 @@ class Handler(BaseRequestHandler):
         private = dh.generate_keys(g,p,self.request)
         secret = long_to_bytes(pow(client_public, private, p))
         print(f"{secret=}")
-        port = int(dh.cipher_message(secret, self.request))
-        name = dh.cipher_message(secret, self.request)
+        user_msg = lambda message=None: dh.cipher_message(secret, self.request, message)
+
+        port = int(user_msg())
+        name = user_msg()
+        if check_name_exists(name):
+            user_msg("Name exists")
+            self.request.close()
+        else:
+            user_msg("success")
 
         rpc_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         rpc_sock.connect((self.client_address[0], port))
 
-        connections.append((secret, rpc_sock))
+        connections.append((secret, rpc_sock, name))
         print(f"{self.client_address[0]}:{port} connected")
         print(f"There are currently {len(connections)} connections.")
 
         print("-"*20,end="\n\n")
         while True:
-            received_msg = dh.cipher_message(secret, self.request).strip()
-            send_to_all(sanitize(f"{name} said: {received_msg}"))
+            received_msg = user_msg().strip()
+            try:
+                split_payload = received_msg.split("|", 1)
+                payload_type = split_payload[0]
+                payload = split_payload[1]
+
+                dispatch = {
+                    "file": lambda payload: payload,
+                    "text": sanitize
+                }
+                send_to_all(payload_type+"|"+name+"|"+dispatch[payload_type](payload), exclude_user=name)
+            except Exception as e:
+                user_msg(f"[FAILURE] {e}")
+                continue
+
+            user_msg("Successfully sent")
 
 def start_server():
     with ThreadingTCPServer(("0.0.0.0", 5555), Handler) as server:
