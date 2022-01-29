@@ -156,7 +156,7 @@ while True:
             continue
 
     try:
-        print(f"Connecting to {':'.join(ip)}; hangon...")
+        print(f"Connecting to {':'.join([str(segment) for segment in ip])}; hangon...")
         do_connect(ip)
     except ConnectionError as e:
         print(f"Connection error: {e}.")
