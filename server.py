@@ -22,6 +22,18 @@ def check_name_exists(name):
 
     return False
 
+
+
+### Sanitization Functions ###
+def sanitize_file(hex):
+    try:
+        bytes.fromhex(hex)
+    except ValueError:
+        raise "You can only supply valid hexadecimal for the file payload!"
+        
+    return hex
+
+
 def sanitize(text):
     new_txt = ""
     for char in text:
@@ -29,6 +41,9 @@ def sanitize(text):
             if char == good_char:
                 new_txt += char
     return new_txt
+
+
+
 
 
 class Handler(BaseRequestHandler):
@@ -70,7 +85,7 @@ class Handler(BaseRequestHandler):
                 payload = split_payload[1]
 
                 dispatch = {
-                    "file": lambda payload: payload,
+                    "file": sanitize_file,
                     "text": sanitize
                 }
                 send_to_all(payload_type+"|"+name+"|"+dispatch[payload_type](payload), exclude_user=name)
