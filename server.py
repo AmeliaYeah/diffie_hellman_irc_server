@@ -85,10 +85,16 @@ class Handler(BaseRequestHandler):
                 payload = split_payload[1]
 
                 dispatch = {
-                    "file": sanitize_file,
-                    "text": sanitize
+                    "file": (sanitize_file, True, "hex"),
+                    "text": (sanitize, False, "ascii")
                 }
-                send_to_all(payload_type+"|"+name+"|"+dispatch[payload_type](payload), exclude_user=name)
+                dispatch_res, hide_text, text_fmt = dispatch[payload_type]
+                requested = f"({len(payload)} bytes)"
+                if not hide_text:
+                    requested = f"\"{payload}\""
+                    
+                print(f"{name} requested payload {payload_type}: {requested} (in {text_fmt})")
+                send_to_all(payload_type+"|"+name+"|"+dispatch_res(), exclude_user=name)
             except Exception as e:
                 user_msg(f"[FAILURE] {e}")
                 continue
