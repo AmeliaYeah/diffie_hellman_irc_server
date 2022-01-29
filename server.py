@@ -94,7 +94,7 @@ class Handler(BaseRequestHandler):
                     requested = f"\"{payload}\""
                     
                 print(f"{name} requested payload {payload_type}: {requested} (in {text_fmt})")
-                send_to_all(payload_type+"|"+name+"|"+dispatch_res(), exclude_user=name)
+                send_to_all(payload_type+"|"+name+"|"+dispatch_res(payload), exclude_user=name)
             except Exception as e:
                 user_msg(f"[FAILURE] {e}")
                 continue
