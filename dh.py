@@ -3,7 +3,7 @@ from Crypto.Util.number import bytes_to_long, getPrime, isPrime
 from Crypto.Cipher import ChaCha20
 from Crypto.Hash import HMAC, SHA256
 
-generate_secure_number = lambda: bytes_to_long(os.urandom(16))
+generate_secure_number = lambda: bytes_to_long(os.urandom(32))
 def calculate_shared_variables():
     q = getPrime(256)
     p = 100
