@@ -39,4 +39,7 @@ def cipher_message(key, connection, message=None):
         connection.send(cryptor.encrypt(message.encode("ascii")))
     else:
         msg_size = int(connection.recv(4).decode("ascii"), 16)
-        return cryptor.decrypt(connection.recv(msg_size)).decode("ascii")
+        try:
+            return cryptor.decrypt(connection.recv(msg_size)).decode("ascii")
+        except UnicodeDecodeError:
+            raise "Received message; but it could not be decoded into ascii."
