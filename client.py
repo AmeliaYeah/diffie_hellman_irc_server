@@ -129,6 +129,8 @@ def start_listening_socket(secret, parent_socket):
 def do_connect(ip):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.connect(ip)
+        print("Connection established! Awaiting P and G...")
+        
         data = sock.recv(4096).decode("ascii").split("|")
         shared = {}
         for index,variable in enumerate(["p", "g"]):
@@ -154,6 +156,7 @@ while True:
             continue
 
     try:
+        print(f"Connecting to {':'.join(ip)}; hangon...")
         do_connect(ip)
     except ConnectionError as e:
         print(f"Connection error: {e}.")
