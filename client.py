@@ -8,7 +8,7 @@ def socket_communication_file(payload, name):
     if not os.path.isdir(file_save_directory):
         os.mkdir(file_save_directory)
 
-    file_name = f"{file_save_directory}/{name}_{os.urandom(3).hex()}"
+    file_name = f"{file_save_directory}/{name}_{os.urandom(10).hex()}"
     with open(file_name, "wb") as f:
         f.write(bytes.fromhex(payload))
     return f"File from {name} was saved at {file_name}"
